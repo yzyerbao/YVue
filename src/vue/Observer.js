@@ -1,3 +1,4 @@
+import Dep from './Dep';
 export class Observer {
     constructor(data){
         this.$data = data;
@@ -10,26 +11,32 @@ export class Observer {
     }
     defineReactive(data,key,val)
     {
+        let dep = new Dep();
+        let childObj = observe(val);
         Object.defineProperty(data,key,{
             enumerable:true,
             configurable:false,
             get() {
+                if(Dep.target)
+                {
+                    Dep.depend();
+                }
                 return val;
             },
             set(newVal){
               if(newVal !== val)
               {
                   val = newVal;
+                  childObj = observe(newVal);
+                  dep.notify();
               }
             }
         })
     }
-
 }
-export function observe(value) {
-    if(!value && typeof value !== 'object')
+export function observe(value, vm) {
+    if(value && typeof value === 'object')
     {
-        return;
+        return new Observer(value);
     }
-    return new Observer(value);
 }
